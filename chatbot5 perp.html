@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chatbot Modern Beginner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css?family=Nunito:400,700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Nunito', Arial, sans-serif;
+      background: #f2f5fa;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 24px;
+    }
+    .chat-container {
+      width: 370px;
+      max-width: 97vw;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      height: 560px;
+    }
+    .chat-header {
+      background: linear-gradient(90deg, #5c70f2 60%, #5fd3bc 100%);
+      color: #fff;
+      padding: 20px 0 15px 0;
+      text-align: center;
+      font-size: 1.2em;
+      font-weight: bold;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 10px rgba(92,112,242,0.11);
+      min-height: 30px;
+      transition: background 0.3s;
+      user-select: none;
+    }
+    .chat-box {
+      flex: 1;
+      padding: 18px 16px;
+      overflow-y: auto;
+      background: #f7faff;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      scroll-behavior: smooth;
+    }
+    .message {
+      padding: 10px 14px;
+      border-radius: 18px;
+      max-width: 75%;
+      word-wrap: break-word;
+      display: inline-block;
+      font-size: 1em;
+      margin-bottom: 2px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: transform 0.18s;
+    }
+    .message.user {
+      background: #5c70f2;
+      color: #fff;
+      align-self: flex-end;
+      border-radius: 18px 18px 4px 18px;
+    }
+    .message.bot {
+      background: #edeeff;
+      color: #121441;
+      align-self: flex-start;
+      border-radius: 18px 18px 18px 4px;
+    }
+    .message:hover { transform: scale(1.04); }
+    .typing-indicator {
+      align-self: flex-start;
+      background: #edeeff;
+      padding: 10px 14px;
+      border-radius: 18px 18px 18px 4px;
+      font-style: italic;
+      color: #72768a;
+      min-width: 60px;
+      width: fit-content;
+      font-size: 15px;
+      letter-spacing: 1px;
+      position: relative;
+    }
+    .typing-indicator .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-left: 1px;
+      background: #b1aeff;
+      border-radius: 50%;
+      animation: blink 1.5s infinite both;
+    }
+    .typing-indicator .dot:nth-child(2){ animation-delay: .2s;}
+    .typing-indicator .dot:nth-child(3){ animation-delay: .4s;}
+    @keyframes blink{
+      0%{opacity: .3;}
+      20%{opacity:1;}
+      100%{opacity:.3;}
+    }
+    .input-container {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      border-top: 1px solid #e7eaf5;
+      background: #f7faff;
+      padding: 14px 12px;
+    }
+    .input-container input {
+      flex: 1;
+      border-radius: 22px;
+      border: 1px solid #dadff0;
+      padding: 11px 18px;
+      font-size: 16px;
+      background: #fff;
+      transition: border 0.3s;
+      outline: none;
+    }
+    .input-container input:focus { border: 1.5px solid #5c70f2; }
+    .input-container button {
+      min-width: 80px;
+      background: linear-gradient(90deg, #5c70f2 70%, #5fd3bc 100%);
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 10px 0;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.22s, transform .15s;
+      box-shadow: 0 2px 8px rgba(92,112,242,0.08);
+    }
+    .input-container button:hover { background: #5562c9; transform: scale(1.02);}
+    .settings-container {
+      width: 260px;
+      background: #fff;
+      border-radius: 16px;
+      padding: 18px 12px 14px 12px;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.10);
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      max-width: 95vw;
+    }
+    .settings-toggle {
+      border-radius: 9px;
+      background: #5fd3bc;
+      color: #fff;
+      padding: 10px;
+      margin-bottom: 7px;
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      transition: background 0.2s;
+      min-width: 120px;
+    }
+    .settings-toggle:hover { background: #30bc9c; }
+    .settings-panel {
+      display: none;
+      margin-top: 10px;
+      transition: all 0.3s ease;
+    }
+    .settings-panel input {
+      margin: 5px 0;
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #dadff0;
+      border-radius: 9px;
+      font-size: 16px;
+      background: #fafbff;
+      transition: all 0.3s ease;
+    }
+    .settings-panel button {
+      width: 100%;
+      border-radius: 9px;
+      padding: 8px;           /* kleiner */
+      border: none;
+      background: linear-gradient(90deg, #5c70f2 60%, #5fd3bc 100%);
+      color: #fff;
+      font-weight: bold;
+      margin-top: 6px;
+      cursor: pointer;
+      font-size: 13px;       /* kleiner */
+      transition: background 0.18s;
+    }
+    .settings-panel button:hover { background: #5562c9; }
+    .keyword-list {
+      margin-top: 10px;
+      max-height: 125px;
+      overflow-y: auto;
+      border-top: 1px solid #e6e9fa;
+      padding-top: 8px;
+    }
+    .keyword-item {
+      background: #f5faff;
+      margin: 4px 0;
+      padding: 6px 8px;
+      border-radius: 10px;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(92,112,242,0.05);
+    }
+    .keyword-item strong { color: #5c70f2; }
+    .delete-btn {
+      background: #f26c70;
+      border: none;
+      color: white;
+      padding: 3px 9px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.19s;
+    }
+    .delete-btn:hover { background: #d23c46; }
+    @media(max-width: 820px){
+      body { flex-direction: column; align-items: center; }
+      .chat-container, .settings-container { width: 98vw; }
+      .settings-container { margin-top: 18px;}
+    }
+    .botname-box {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 10px;
+      margin-top: -6px;
+    }
+    .botname-box input {
+      flex: 1;
+      max-width: none; /* Volle Breite */
+      padding: 10px 14px;
+      border-radius: 9px;
+      border: 1px solid #dadff0;
+      font-size: 16px;
+      background: #fafbff;
+      transition: max-width 0.3s ease;
+    }
+    .botname-box button {
+      background: #5c70f2;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      font-size: 12px;   /* kleiner */
+      min-width: 90px;   /* kleiner */
+      padding: 6px 8px;  /* kleiner */
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .botname-box button:hover { background: #40ddcc; }
+  </style>
+</head>
+<body>
+
+<div class="chat-container">
+  <div class="chat-header" id="bot-header-name">💬 Chatbot Demo</div>
+  <div class="chat-box" id="chat-box"></div>
+  <div class="input-container">
+    <input type="text" id="user-input" placeholder="Deine Nachricht..." />
+    <button type="button" onclick="sendMessage()">Senden</button>
+  </div>
+</div>
+
+<div class="settings-container">
+  <button class="settings-toggle" onclick="toggleSettings()">⚙️ Einstellungen</button>
+  <div class="settings-panel" id="settings-panel">
+    <div class="botname-box" id="botname-box">
+      <input type="text" id="botname-input" placeholder="Bot-Name" />
+      <button type="button" onclick="changeBotName()">Bot-Name speichern</button>
+    </div>
+    <h4>Schlagwort speichern</h4>
+    <input type="text" id="keyword" placeholder="Schlagwort (z.B. hallo)" />
+    <input type="text" id="response" placeholder="Antwort (z.B. Hallo! Wie kann ich helfen?)" />
+    <button type="button" onclick="addKeyword()">Speichern</button>
+    <div class="keyword-list" id="keyword-list">
+      <h4>Gespeicherte Schlagworte</h4>
+    </div>
+  </div>
+</div>
+
+<script>
+let keywords = JSON.parse(localStorage.getItem("chatKeywords")) || [
+  {word: "hallo", response: "Hallo! Wie kann ich dir helfen?"},
+  {word: "hilfe", response: "Natürlich, wobei brauchst du Hilfe?"},
+  {word: "wetter", response: "Ich bin kein Wetterdienst, aber es sieht immer sonnig aus im Chat! ☀️"},
+  {word: "tschüss", response: "Auf Wiedersehen! Bis bald!"}
+];
+// Botname persistent speichern (auch nach Neuladen!)
+let botName = localStorage.getItem("botName") || "💬 Chatbot Demo";
+document.getElementById("bot-header-name").textContent = botName;
+
+function changeBotName() {
+  let input = document.getElementById("botname-input").value.trim();
+  if (!input) {
+    alert("Bitte neuen Bot-Namen eingeben.");
+    return;
+  }
+  document.getElementById("bot-header-name").textContent = input;
+  localStorage.setItem("botName", input);
+  document.getElementById("botname-input").value = "";
+}
+
+function saveKeywords() {
+  localStorage.setItem("chatKeywords", JSON.stringify(keywords));
+}
+
+function sendMessage() {
+  let inputField = document.getElementById("user-input");
+  let message = inputField.value.trim();
+  if (!message) return;
+  addMessage(message, "user");
+  inputField.value = "";
+  showTypingIndicator();
+  setTimeout(() => {
+    hideTypingIndicator();
+    typeBotMessage(getBotResponse(message));
+  }, 600);
+}
+
+function addMessage(text, sender) {
+  let chatBox = document.getElementById("chat-box");
+  let msg = document.createElement("div");
+  msg.classList.add("message", sender);
+  msg.textContent = text;
+  chatBox.appendChild(msg);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function typeBotMessage(text) {
+  let chatBox = document.getElementById("chat-box");
+  let msg = document.createElement("div");
+  msg.classList.add("message", "bot");
+  chatBox.appendChild(msg);
+  let i = 0;
+  function type() {
+    if (i < text.length) {
+      msg.textContent += text.charAt(i);
+      i++;
+      chatBox.scrollTop = chatBox.scrollHeight;
+      setTimeout(type, 26);
+    }
+  }
+  type();
+}
+
+function showTypingIndicator() {
+  let chatBox = document.getElementById("chat-box");
+  let indicator = document.createElement("div");
+  indicator.classList.add("typing-indicator");
+  indicator.id = "typing-indicator";
+  for (let d = 0; d < 3; d++) {
+    let dot = document.createElement("span");
+    dot.classList.add("dot");
+    indicator.appendChild(dot);
+  }
+  chatBox.appendChild(indicator);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function hideTypingIndicator() {
+  let indicator = document.getElementById("typing-indicator");
+  if (indicator) indicator.remove();
+}
+
+function getBotResponse(input) {
+  input = input.toLowerCase();
+  for (let item of keywords) {
+    if (input.includes(item.word)) return item.response;
+  }
+  return "Das habe ich nicht verstanden. Kannst du es anders formulieren?";
+}
+
+function addKeyword() {
+  let word = document.getElementById("keyword").value.trim().toLowerCase();
+  let response = document.getElementById("response").value.trim();
+  if (!word || !response) {
+    alert("Bitte Schlagwort UND Antwort eingeben.");
+    return;
+  }
+  if (keywords.some(item => item.word === word)) {
+    alert("Dieses Schlagwort existiert bereits!");
+    return;
+  }
+  keywords.push({ word, response });
+  saveKeywords();
+  updateKeywordList();
+  alert("Neues Schlagwort gespeichert!");
+  document.getElementById("keyword").value = "";
+  document.getElementById("response").value = "";
+}
+
+function deleteKeyword(index) {
+  keywords.splice(index, 1);
+  saveKeywords();
+  updateKeywordList();
+}
+
+function toggleSettings() {
+  let panel = document.getElementById("settings-panel");
+  if (panel.style.display === "block") {
+    panel.style.display = "none";
+  } else {
+    panel.style.display = "block";
+    updateKeywordList();
+    document.getElementById("botname-input").focus();
+  }
+}
+
+function updateKeywordList() {
+  let list = document.getElementById("keyword-list");
+  list.innerHTML = "<h4>Gespeicherte Schlagworte</h4>";
+  keywords.forEach((item, index) => {
+    let div = document.createElement("div");
+    div.classList.add("keyword-item");
+    div.innerHTML = `<span><strong>${item.word}</strong>: ${item.response}</span>
+                     <button class="delete-btn" onclick="deleteKeyword(${index})">❌</button>`;
+    list.appendChild(div);
+  });
+}
+
+updateKeywordList();
+
+document.getElementById("user-input").addEventListener("keypress", e => {
+  if (e.key === "Enter") sendMessage();
+});
+</script>
+
+</body>
+</html>
